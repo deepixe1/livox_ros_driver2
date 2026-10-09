@@ -223,10 +223,18 @@ void Lddc::PublishCustomPointcloud(LidarDataQueue *queue, uint8_t index) {
       continue;
     }
 
+#ifdef BUILDING_ROS2
+    auto livox_msg = std::make_unique<CustomMsg>();
+    InitCustomMsg(*livox_msg, pkg, index);
+    livox_msg->points.reserve(pkg.points_num);
+    FillPointsToCustomMsg(*livox_msg, pkg);
+    PublishCustomPointData(std::move(livox_msg), index);
+#else
     CustomMsg livox_msg;
     InitCustomMsg(livox_msg, pkg, index);
     FillPointsToCustomMsg(livox_msg, pkg);
     PublishCustomPointData(livox_msg, index);
+#endif
   }
 }
 
@@ -398,23 +406,27 @@ void Lddc::FillPointsToCustomMsg(CustomMsg& livox_msg, const StoragePacket& pkg)
   }
 }
 
-void Lddc::PublishCustomPointData(const CustomMsg& livox_msg, const uint8_t index) {
-#ifdef BUILDING_ROS1
-  PublisherPtr publisher_ptr = Lddc::GetCurrentPublisher(index);
-#elif defined BUILDING_ROS2
+#ifdef BUILDING_ROS2
+void Lddc::PublishCustomPointData(std::unique_ptr<CustomMsg> livox_msg, const uint8_t index) {
   Publisher<CustomMsg>::SharedPtr publisher_ptr = std::dynamic_pointer_cast<Publisher<CustomMsg>>(GetCurrentPublisher(index));
-#endif
+
+  if (kOutputToRos == output_type_) {
+    publisher_ptr->publish(std::move(livox_msg));
+  }
+}
+#else
+void Lddc::PublishCustomPointData(const CustomMsg& livox_msg, const uint8_t index) {
+  PublisherPtr publisher_ptr = Lddc::GetCurrentPublisher(index);
 
   if (kOutputToRos == output_type_) {
     publisher_ptr->publish(livox_msg);
   } else {
-#ifdef BUILDING_ROS1
     if (bag_ && enable_lidar_bag_) {
       bag_->write(publisher_ptr->getTopic(), ros::Time(livox_msg.timebase / 1000000000.0), livox_msg);
     }
-#endif
   }
 }
+#endif
 
 void Lddc::InitPclMsg(const StoragePacket& pkg, PointCloud& cloud, uint64_t& timestamp) {
 #ifdef BUILDING_ROS1

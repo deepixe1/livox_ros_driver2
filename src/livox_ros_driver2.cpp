@@ -176,6 +176,7 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
       DRIVER_INFO(*this, "Init lds lidar success!");
     } else {
       DRIVER_ERROR(*this, "Init lds lidar fail!");
+      throw std::runtime_error("livox_ros_driver2 failed to initialize lidar");
     }
   } else {
     DRIVER_ERROR(*this, "Invalid data src (%d), please check the launch file", data_src);

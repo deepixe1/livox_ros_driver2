@@ -1,4 +1,5 @@
 .vscode
 build
-package.xml
 __pycache__
+log
+install

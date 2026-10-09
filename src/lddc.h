@@ -112,7 +112,11 @@ class Lddc final {
 
   void InitCustomMsg(CustomMsg& livox_msg, const StoragePacket& pkg, uint8_t index);
   void FillPointsToCustomMsg(CustomMsg& livox_msg, const StoragePacket& pkg);
+#ifdef BUILDING_ROS2
+  void PublishCustomPointData(std::unique_ptr<CustomMsg> livox_msg, const uint8_t index);
+#else
   void PublishCustomPointData(const CustomMsg& livox_msg, const uint8_t index);
+#endif
 
   void InitPclMsg(const StoragePacket& pkg, PointCloud& cloud, uint64_t& timestamp);
   void FillPointsToPclMsg(const StoragePacket& pkg, PointCloud& pcl_msg);

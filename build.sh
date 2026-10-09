@@ -10,7 +10,7 @@ cd `dirname $0`
 echo "Working Path: "`pwd`
 
 ROS_VERSION=""
-ROS_DISTRO=""
+ROS_DISTRO="${ROS_DISTRO:-}"
 
 # Set working ROS version
 if [ "$1" = "ROS2" ]; then
@@ -43,15 +43,18 @@ fi
 
 # substitute the files/folders: CMakeList.txt, package.xml(s)
 if [ ${ROS_VERSION} = ${VERSION_ROS1} ]; then
-    if [ -f package.xml ]; then
-        rm package.xml
+    if [ ! -f package_ROS1.xml ]; then
+        echo "package_ROS1.xml does not exist"
+        exit 1
     fi
     cp -f package_ROS1.xml package.xml
 elif [ ${ROS_VERSION} = ${VERSION_ROS2} ]; then
-    if [ -f package.xml ]; then
-        rm package.xml
+    if [ -f package_ROS2.xml ]; then
+        cp -f package_ROS2.xml package.xml
+    elif [ ! -f package.xml ]; then
+        echo "package.xml does not exist and package_ROS2.xml is unavailable"
+        exit 1
     fi
-    cp -f package_ROS2.xml package.xml
     cp -rf launch_ROS2/ launch/
 fi
 
